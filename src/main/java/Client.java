@@ -9,6 +9,7 @@ import org.ini4j.Profile;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.spec.RSAOtherPrimeInfo;
 import java.util.*;
@@ -38,8 +39,9 @@ public class Client {
     private static String channel = "DEV.APP.SVRCONN"; // Channel name
     private static String login = "app"; // User name that application uses to connect to MQ
     private static String password = "passw0rd"; // Password that the application uses to connect to MQ
-    private static String dataQueueName;// = "DEV.QUEUE.1"; // Queue that the application uses to put and get messages
-    private static String notifyQueueName;// = "DEV.QUEUE.2";
+//    private static String dataQueueName;// = "DEV.QUEUE.1"; // Queue that the application uses to put and get messages
+//    private static String notifyQueueName;// = "DEV.QUEUE.2";
+    private static String queueName;
     private static String queueManager;// = "QM1"; // Queue manager name
     private static String systemCode;
     private static String sourceSys;
@@ -55,7 +57,8 @@ public class Client {
 //    private static String QMGR = "QM1"; // Queue manager name
 //    private static String APP_USER = "app"; // User name that application uses to connect to MQ
 //    private static String APP_PASSWORD = "_APP_PASSWORD_"; // Password that the application uses to connect to MQ
-//    private static String QUEUE_NAME = "DEV.QUEUE.1"; // Queue that the application uses to put and get messages to and from
+//    private static String QUEUE_NAME = "DEV.QUEUE.1"; // Queue that the application uses to put and get messages to
+//    and from
 
     // and from
 
@@ -72,12 +75,15 @@ public class Client {
         channel = args[2];
         login = args[3];
         password = args[4];
-        dataQueueName = args[5];
-        notifyQueueName = args[6];
-        queueManager = args[7];
-        systemCode = args[8];
-        sourceSys = args[9];
-        targetSys = args[10];
+//        dataQueueName = args[5];
+//        notifyQueueName = args[6];
+        queueName = args[5];
+        queueManager = args[6];
+        systemCode = args[7];
+        sourceSys = args[8];
+        targetSys = args[9];
+
+        String msg = args[11];
 
         boolean mqcsp = true;
         if (password.equals("")) {
@@ -109,7 +115,7 @@ public class Client {
             cf.setStringProperty(WMQConstants.WMQ_APPLICATIONNAME, "JmsPutGet (JMS)");
             cf.setBooleanProperty(WMQConstants.USER_AUTHENTICATION_MQCSP, mqcsp);
             cf.setStringProperty(WMQConstants.USERID, login);
-            if(mqcsp) {
+            if (mqcsp) {
                 cf.setStringProperty(WMQConstants.PASSWORD, password);
             }
 
@@ -119,19 +125,24 @@ public class Client {
 //            destination = session.createQueue("queue:///" + dataQueueName);
 //            producer = session.createProducer(destination);
 
-            for (int i = 11; i < args.length; i += 5) {
-                try {
-                    DataMessage dataMessage = new DataMessage(systemCode, sourceSys, targetSys, args[i + 1], args[i + 2]
-                            , args[i + 3], fileToBytes(new File(args[i])));
-                    sendObject(dataMessage, session, dataQueueName);
-                    DataNotification dataNotification = new DataNotification(systemCode, sourceSys, targetSys,
-                            args[i + 1], args[i + 2], args[i + 4], args[i + 3]);
-                    sendObject(dataNotification, session, notifyQueueName);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+//            for (int i = 11; i < args.length; i += 5) {
+//                try {
+//                    DataMessage dataMessage = new DataMessage(systemCode, sourceSys, targetSys, args[i + 1], args[i
+//                    + 2]
+//                            , args[i + 3], fileToBytes(new File(args[i])));
+//                    sendObject(dataMessage, session, dataQueueName);
+//                    DataNotification dataNotification = new DataNotification(systemCode, sourceSys, targetSys,
+//                            args[i + 1], args[i + 2], args[i + 4], args[i + 3]);
+//                    sendObject(dataNotification, session, notifyQueueName);
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//
+//            }
 
-            }
+            byte[] bytes = msg.getBytes(StandardCharsets.UTF_8);
+            sendBytes(bytes, session, queueName);
+
 
 //            consumer = context.createConsumer(destination); // autoclosable
 //            String receivedMessage = consumer.receiveBody(String.class, 15000); // in ms or 15 seconds
@@ -240,4 +251,21 @@ public class Client {
 
     }
 
+    private static void sendBytes(byte[] bytes, Session session, String queueName) {
+        Destination destination = null;
+        MessageProducer producer = null;
+        try {
+            destination = session.createQueue("queue:///" + queueName);
+            producer = session.createProducer(destination);
+            BytesMessage message = session.createBytesMessage();
+            message.writeBytes(bytes);
+            producer.send(message);
+            System.out.println("bytes sends");
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
+
+    }
+
 }
+
