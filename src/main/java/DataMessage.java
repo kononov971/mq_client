@@ -8,7 +8,7 @@ public class DataMessage implements Serializable {
     private String objectName;
     private String CRC;
     private String description;
-    private byte[] body;
+    private String body;
 
     public DataMessage(String systemCode, String sourceSys, String targetSys, String objectName, String CRC,
                        String description, byte[] body) {
@@ -18,6 +18,6 @@ public class DataMessage implements Serializable {
         this.objectName = objectName;
         this.CRC = CRC;
         this.description = description;
-        this.body = Base64.getEncoder().encode(body);
+        this.body = Base64.getEncoder().encodeToString(body);
     }
 }

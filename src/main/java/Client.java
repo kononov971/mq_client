@@ -3,6 +3,7 @@ import javax.jms.*;
 import com.ibm.msg.client.jms.JmsConnectionFactory;
 import com.ibm.msg.client.jms.JmsFactoryFactory;
 import com.ibm.msg.client.wmq.WMQConstants;
+import java.util.Base64;
 import org.ini4j.Ini;
 import org.ini4j.Profile;
 
@@ -83,7 +84,7 @@ public class Client {
         sourceSys = args[8];
         targetSys = args[9];
 
-        String msg = args[11];
+        String msg = args[10];
 
         boolean mqcsp = true;
         if (password.equals("")) {
@@ -112,7 +113,7 @@ public class Client {
             cf.setStringProperty(WMQConstants.WMQ_CHANNEL, channel);
             cf.setIntProperty(WMQConstants.WMQ_CONNECTION_MODE, WMQConstants.WMQ_CM_CLIENT);
             cf.setStringProperty(WMQConstants.WMQ_QUEUE_MANAGER, queueManager);
-            cf.setStringProperty(WMQConstants.WMQ_APPLICATIONNAME, "JmsPutGet (JMS)");
+            //cf.setStringProperty(WMQConstants.WMQ_APPLICATIONNAME, "JmsPutGet (JMS)");
             cf.setBooleanProperty(WMQConstants.USER_AUTHENTICATION_MQCSP, mqcsp);
             cf.setStringProperty(WMQConstants.USERID, login);
             if (mqcsp) {
@@ -140,7 +141,8 @@ public class Client {
 //
 //            }
 
-            byte[] bytes = msg.getBytes(StandardCharsets.UTF_8);
+            //byte[] bytes = msg.getBytes(StandardCharsets.UTF_8);
+            byte[] bytes = Base64.getDecoder().decode(msg);
             sendBytes(bytes, session, queueName);
 
 
